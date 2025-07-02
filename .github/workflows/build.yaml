@@ -20,7 +20,7 @@ jobs:
                 config: ${{ github.workspace }}/build.yaml
 
             - name: install deps
-              run: sudo apt-get update && sudo apt-get install build-essential wget git -y
+              run: sudo apt-get update && sudo apt-get install build-essential wget libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf -y
 
             - name: download kernel
               run: |
