@@ -1,2 +1,4 @@
 version: 6.15.4
 config: config/${{ version }}/.config
+patches:
+  - https://raw.githubusercontent.com/CachyOS/kernel-patches/refs/heads/master/6.15/all/0001-cachyos-base-all.patch
