@@ -50,7 +50,7 @@ jobs:
                 make ${MAKE_OPTS} bzImage
                 cp -v arch/x86/boot/bzImage ${{ github.workspace }}/vmlinuz-linux${{ steps.config.outputs['version'] }}
                 
-            - uses: actions/upload-artifact@v3
+            - uses: actions/upload-artifact@v4
               with:
                 name: kernel
                 path: ${{ github.workspace }}/vmlinuz-linux${{ steps.config.outputs['version'] }}
