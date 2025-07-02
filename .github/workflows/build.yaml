@@ -24,7 +24,7 @@ jobs:
 
             - name: download kernel
               run: |
-                wget https://cdn.kernel.org/pub/linux/kernel/v${{ steps.config.outputs['major_version'] }}/linux-${{ steps.config.outputs['version'] }}.tar.xz
+                wget https://cdn.kernel.org/pub/linux/kernel/v${{ steps.config.outputs['major_version'] }}.x/linux-${{ steps.config.outputs['version'] }}.tar.xz
                 tar -xf linux-${{ steps.config.outputs['version'] }}.tar.xz
 
             - name: copy config
