@@ -1,0 +1,56 @@
+name: Build Linux Kernel
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout
+              uses: actions/checkout@v3
+
+            - name: read-yaml-file
+              uses: pietrobolcato/action-read-yaml@1.0.0
+              id: config
+              with:
+                config: ${{ github.workspace }}/build.yaml
+
+            - name: install deps
+              run: sudo apt-get update && sudo apt-get install build-essential wget git build-dep -y
+
+            - name: download kernel
+              run: |
+                wget https://cdn.kernel.org/pub/linux/kernel/v${{ steps.config.outputs['major_version'] }}/linux-${{ steps.config.outputs['version'] }}.tar.xz
+                tar -xf linux-${{ steps.config.outputs['version'] }}.tar.xz
+
+            - name: copy config
+              run: |
+                cp ${{ steps.config.outputs['config'] }} linux-${{ steps.config.outputs['version'] }}/
+
+            - name: build kernel
+              run: |
+                cd linux-${{ steps.config.outputs['version'] }}
+                export INSTALL_DIR=${PWD}/install
+                export BUILD_DIR=${PWD}/build
+                export MAKE_OPTS="-j`nproc` \
+                        INSTALL_PATH=${INSTALL_DIR}/boot \
+                        INSTALL_MOD_PATH=${INSTALL_DIR}"
+                mkdir -p ${INSTALL_DIR}
+                mkdir -p ${BUILD_DIR}
+                make ${MAKE_OPTS} olddefconfig
+                make ${MAKE_OPTS} prepare
+                make ${MAKE_OPTS} 
+                make ${MAKE_OPTS} modules
+                make ${MAKE_OPTS} install
+                make ${MAKE_OPTS} modules_install
+                make ${MAKE_OPTS} bzImage
+                cp -v arch/x86/boot/bzImage ${{ github.workspace }}/vmlinuz-linux${{ steps.config.outputs['version'] }}
+                
+            - uses: actions/upload-artifact@v3
+              with:
+                name: kernel
+                path: ${{ github.workspace }}/vmlinuz-linux${{ steps.config.outputs['version'] }}
