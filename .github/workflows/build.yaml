@@ -1,14 +1,25 @@
 name: Build Linux Kernel
 
 on:
-    push:
-        branches:
-            - main
-        paths:
-            - 'build.yaml'
-            - 'config/**'
-            - '.github/workflows/build.yaml'
     workflow_dispatch:
+      inputs:
+        config:
+          description: 'kernels config'
+          required: false
+          default: '.config'
+        major_version:
+          description: 'major version of the kernel 6.x.x'
+          required: false
+          default: '6'
+        mid_version:
+          description: 'middle version of the kernel x.15.x'
+          required: false
+          default: '15'
+        minor_version:
+          description: 'minor version of the kernel x.x.4'
+          required: false
+          default: '4'
+
 
 jobs:
     build:
@@ -17,27 +28,21 @@ jobs:
             - name: checkout
               uses: actions/checkout@v3
 
-            - name: read-yaml-file
-              uses: pietrobolcato/action-read-yaml@1.0.0
-              id: config
-              with:
-                config: ${{ github.workspace }}/build.yaml
-
             - name: install deps
               run: sudo apt-get update && sudo apt-get install build-essential wget libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf -y
 
             - name: download kernel
               run: |
-                wget https://cdn.kernel.org/pub/linux/kernel/v${{ steps.config.outputs['major_version'] }}.x/linux-${{ steps.config.outputs['version'] }}.tar.xz
-                tar -xf linux-${{ steps.config.outputs['version'] }}.tar.xz
+                wget https://cdn.kernel.org/pub/linux/kernel/v${{ inputs.major_version }}.x/linux-${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}.tar.xz
+                tar -xf linux-${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}.tar.xz
 
             - name: copy config
               run: |
-                cp ${{ github.workspace }}/${{ steps.config.outputs['config'] }}/${{ steps.config.outputs['version'] }}/.config linux-${{ steps.config.outputs['version'] }}/
+                cp ${{ github.workspace }}/${{ inputs.config }} linux-${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}/
 
             - name: build kernel
               run: |
-                cd linux-${{ steps.config.outputs['version'] }}
+                cd linux-${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}
                 export INSTALL_DIR=${PWD}/install
                 export BUILD_DIR=${PWD}/build
                 export MAKE_OPTS="-j`nproc` \
@@ -52,9 +57,9 @@ jobs:
                 make ${MAKE_OPTS} install
                 make ${MAKE_OPTS} modules_install
                 make ${MAKE_OPTS} bzImage
-                cp -v arch/x86/boot/bzImage ${{ github.workspace }}/vmlinuz-linux${{ steps.config.outputs['version'] }}
+                cp -v arch/x86/boot/bzImage ${{ github.workspace }}/vmlinuz-linux${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}
                 
             - uses: actions/upload-artifact@v4
               with:
-                name: kernel
-                path: ${{ github.workspace }}/vmlinuz-linux${{ steps.config.outputs['version'] }}
+                name: vmlinuz-linux${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}
+                path: ${{ github.workspace }}/vmlinuz-linux${{ inputs.major_version }}.${{ inputs.mid_version }}.${{ inputs.minor_version }}
