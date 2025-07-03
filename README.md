@@ -1,5 +1,7 @@
 # github-actions-kernel-builder
 
-Builds a kernel according to the build.yaml config file which sources the actual .config from config/
+Builds a kernel using GH Actions.
 
-uploads build artifact
+## Usage:
+
+Fork, customize the .config in the root dir, run action, boom.
